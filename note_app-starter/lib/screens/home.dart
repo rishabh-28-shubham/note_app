@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:note_app/constants/colors.dart';
 import 'package:note_app/models/note.dart';
+import 'package:note_app/screens/edit.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -128,6 +129,30 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Padding(
                           padding: const EdgeInsets.all(10.0),
                           child: ListTile(
+                              onTap: () async {
+                                final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (BuildContext context) =>
+                                            EditScreen(
+                                              note: filteredNotes[index],
+                                            )));
+                                if (result != null) {
+                                  setState(() {
+                                    int originalIndex = sampleNotes.indexOf(filteredNotes[index]);
+                                    sampleNotes[originalIndex] = (Note(
+                                        id: sampleNotes[originalIndex].id,
+                                        title: result[0],
+                                        content: result[1],
+                                        modifiedTime: DateTime.now()));
+                                    filteredNotes[index] = (Note(
+                                        id: filteredNotes[index].id,
+                                        title: result[0],
+                                        content: result[1],
+                                        modifiedTime: DateTime.now()));
+                                  });
+                                }
+                              },
                               title: RichText(
                                 maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
@@ -161,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               trailing: IconButton(
                                   onPressed: () async {
                                     final result = await confirmDialog(context);
-                                    if (result!=null && result) {
+                                    if (result != null && result) {
                                       deleteNote(index);
                                     }
                                   },
@@ -175,7 +200,23 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () async {
+          final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (BuildContext context) => const EditScreen()));
+
+          if (result != null) {
+            setState(() {
+              sampleNotes.add(Note(
+                  id: sampleNotes.length,
+                  title: result[0],
+                  content: result[1],
+                  modifiedTime: DateTime.now()));
+              filteredNotes = sampleNotes;
+            });
+          }
+        },
         backgroundColor: Colors.grey.shade800,
         elevation: 10,
         child: Icon(Icons.add, size: 38, color: Colors.white),
@@ -185,71 +226,59 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<dynamic> confirmDialog(BuildContext context) {
     return showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          backgroundColor:
-                                              Colors.grey.shade900,
-                                          icon: Icon(Icons.info,
-                                              color: Colors.grey),
-                                          title: Text(
-                                            'Are you Sure you want to delete it!!',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          content: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment
-                                                    .spaceAround,
-                                            children: [
-                                              ElevatedButton(
-                                                onPressed: () {
-                                                  Navigator.pop(
-                                                      context, true);
-                                                },
-                                                style:
-                                                    ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      Colors.green,
-                                                ),
-                                                child: SizedBox(
-                                                  width: 60,
-                                                  child: Text(
-                                                    'Yes',
-                                                    textAlign:
-                                                        TextAlign.center,
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              ElevatedButton(
-                                                onPressed: () {
-                                                  Navigator.pop(
-                                                      context, true);
-                                                },
-                                                style:
-                                                    ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      Colors.red,
-                                                ),
-                                                child: SizedBox(
-                                                  width: 60,
-                                                  child: Text(
-                                                    'No',
-                                                    textAlign:
-                                                        TextAlign.center,
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      });
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            backgroundColor: Colors.grey.shade900,
+            icon: Icon(Icons.info, color: Colors.grey),
+            title: Text(
+              'Are you Sure you want to delete it!!',
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context, true);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                  ),
+                  child: SizedBox(
+                    width: 60,
+                    child: Text(
+                      'Yes',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context, true);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: SizedBox(
+                    width: 60,
+                    child: Text(
+                      'No',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
   }
 }
