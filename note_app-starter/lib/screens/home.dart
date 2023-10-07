@@ -13,18 +13,44 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  List<Note> filteredNotes = [];
+  bool sorted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    filteredNotes = sampleNotes;
+  }
+
+  List<Note> sortNotesByModifiedTime(List<Note> notes) {
+    if (sorted) {
+      notes.sort((a, b) => a.modifiedTime.compareTo(b.modifiedTime));
+    } else {
+      notes.sort((b, a) => a.modifiedTime.compareTo(b.modifiedTime));
+    }
+    return notes;
+
+    sorted = !sorted;
+  }
+
   getRandomColor() {
     Random random = Random();
     return backgroundColors[random.nextInt((backgroundColors.length))];
   }
 
-void onSearchTextChanged(String searchText) {
+  void onSearchTextChanged(String searchText) {
     setState(() {
-      var filteredNotes = sampleNotes
+      filteredNotes = sampleNotes
           .where((note) =>
               note.content.toLowerCase().contains(searchText.toLowerCase()) ||
               note.title.toLowerCase().contains(searchText.toLowerCase()))
           .toList();
+    });
+  }
+
+  void deleteNote(int index) {
+    setState(() {
+      filteredNotes.removeAt(index);
     });
   }
 
@@ -48,7 +74,11 @@ void onSearchTextChanged(String searchText) {
                 ),
                 //setting icon button
                 IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      setState(() {
+                        filteredNotes = sortNotesByModifiedTime(filteredNotes);
+                      });
+                    },
                     padding: EdgeInsets.all(0),
                     icon: Container(
                         width: 40,
@@ -66,6 +96,7 @@ void onSearchTextChanged(String searchText) {
               height: 10,
             ),
             TextField(
+              onChanged: onSearchTextChanged,
               style: TextStyle(fontSize: 16, color: Colors.white),
               decoration: InputDecoration(
                   contentPadding: EdgeInsets.symmetric(vertical: 12),
@@ -86,7 +117,7 @@ void onSearchTextChanged(String searchText) {
               child: Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: ListView.builder(
-                  itemCount: sampleNotes.length,
+                  itemCount: filteredNotes.length,
                   itemBuilder: (context, index) {
                     return Card(
                         margin: EdgeInsets.only(bottom: 20),
@@ -101,7 +132,7 @@ void onSearchTextChanged(String searchText) {
                                 maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
                                 text: TextSpan(
-                                    text: '${sampleNotes[index].title} \n',
+                                    text: '${filteredNotes[index].title} \n',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black,
@@ -109,7 +140,7 @@ void onSearchTextChanged(String searchText) {
                                         height: 1.5),
                                     children: [
                                       TextSpan(
-                                          text: sampleNotes[index].content,
+                                          text: filteredNotes[index].content,
                                           style: TextStyle(
                                               color: Colors.black,
                                               fontWeight: FontWeight.bold,
@@ -120,7 +151,7 @@ void onSearchTextChanged(String searchText) {
                               subtitle: Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: Text(
-                                  "${DateFormat('EEE MMM d, yyyy h:mm a').format(sampleNotes[index].modifiedTime)}",
+                                  "${DateFormat('EEE MMM d, yyyy h:mm a').format(filteredNotes[index].modifiedTime)}",
                                   style: TextStyle(
                                       fontStyle: FontStyle.italic,
                                       fontSize: 10,
@@ -128,7 +159,13 @@ void onSearchTextChanged(String searchText) {
                                 ),
                               ),
                               trailing: IconButton(
-                                  onPressed: () {}, icon: Icon(Icons.delete))),
+                                  onPressed: () async {
+                                    final result = await confirmDialog(context);
+                                    if (result!=null && result) {
+                                      deleteNote(index);
+                                    }
+                                  },
+                                  icon: Icon(Icons.delete))),
                         ));
                   },
                 ),
@@ -144,5 +181,75 @@ void onSearchTextChanged(String searchText) {
         child: Icon(Icons.add, size: 38, color: Colors.white),
       ),
     );
+  }
+
+  Future<dynamic> confirmDialog(BuildContext context) {
+    return showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          backgroundColor:
+                                              Colors.grey.shade900,
+                                          icon: Icon(Icons.info,
+                                              color: Colors.grey),
+                                          title: Text(
+                                            'Are you Sure you want to delete it!!',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          content: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment
+                                                    .spaceAround,
+                                            children: [
+                                              ElevatedButton(
+                                                onPressed: () {
+                                                  Navigator.pop(
+                                                      context, true);
+                                                },
+                                                style:
+                                                    ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.green,
+                                                ),
+                                                child: SizedBox(
+                                                  width: 60,
+                                                  child: Text(
+                                                    'Yes',
+                                                    textAlign:
+                                                        TextAlign.center,
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              ElevatedButton(
+                                                onPressed: () {
+                                                  Navigator.pop(
+                                                      context, true);
+                                                },
+                                                style:
+                                                    ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.red,
+                                                ),
+                                                child: SizedBox(
+                                                  width: 60,
+                                                  child: Text(
+                                                    'No',
+                                                    textAlign:
+                                                        TextAlign.center,
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      });
   }
 }
