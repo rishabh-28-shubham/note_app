@@ -25,7 +25,7 @@ flutter_launcher_icons:
 flutter_native_splash:
   android: true
   ios: true
-  color: "#42a5f5"
+  color: "#121212"
   image: "assets/NOTES.png"
 
   flutter_test:
